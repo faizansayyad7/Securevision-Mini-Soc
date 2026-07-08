@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Upload -->
+
+<div class="upload-box">
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="logfile" required>
+        <button type="submit">Analyze Logs</button>
+    </form>
+</div>
+
+<!-- Toolbar -->
+
+<div class="toolbar">
+
+    <input
+        type="text"
+        id="searchInput"
+        placeholder="🔍 Search logs...">
+
+    <select id="severityFilter">
+        <option value="ALL">All Severity</option>
+        <option value="LOW">Low</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="CRITICAL">Critical</option>
+    </select>
+
+    <button onclick="exportTable()">
+        Export CSV
+    </button>
+
+</div>
+
+<!-- Cards -->
+
+<div class="cards">
+
+    <div class="card">
+        <h3>Total Logs</h3>
+        <h1>{{ total }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Failed Logins</h3>
+        <h1>{{ failed }}</h1>
+    </div>
+
+    <div class="card">
+
+        <h3>Status</h3>
+
+        {% if alert %}
+            <h1 class="danger">ALERT</h1>
+        {% else %}
+            <h1 class="safe">SAFE</h1>
+        {% endif %}
+
+    </div>
+
+    <div class="card">
+        <h3>Risk Score</h3>
+        <h1>{{ risk }}%</h1>
+    </div>
+
+</div>
+
+<!-- Analytics -->
+
+<div class="analytics-grid">
+
+    <div class="analytics-card">
+
+        <h3>Threat Level</h3>
+
+        {% if critical > 0 %}
+            <h1 class="critical">HIGH</h1>
+        {% elif medium > 2 %}
+            <h1 class="medium">MEDIUM</h1>
+        {% else %}
+            <h1 class="low">LOW</h1>
+        {% endif %}
+
+    </div>
+
+    <div class="analytics-card">
+
+        <h3>Active Incidents</h3>
+
+        <h1>{{ incidents|length }}</h1>
+
+    </div>
+
+    <div class="analytics-card">
+
+        <h3>System Health</h3>
+
+        <h1>{{ health }}%</h1>
+
+    </div>
+
+</div>
+
+<!-- Progress -->
+
+<div class="progress-card">
+
+    <h3>Security Score</h3>
+
+    <div class="progress">
+
+        <div
+            class="progress-fill"
+            style="width:{{ health }}%;">
+
+        </div>
+
+    </div>
+
+    <h2>{{ health }}%</h2>
+
+</div>
+
+<!-- Charts -->
+
+<div class="charts">
+
+    <div class="chart-card">
+
+        <h3>Threat Severity</h3>
+
+        <canvas id="severityChart"></canvas>
+
+    </div>
+
+    <div class="chart-card">
+
+        <h3>Login Attempts</h3>
+
+        <canvas id="loginChart"></canvas>
+
+    </div>
+
+</div>
+
+<!-- Recent Logs -->
+
+<div class="table-box">
+
+<h2>Recent Logs</h2>
+
+<table id="logTable">
+
+<tr>
+
+<th>Log</th>
+
+<th>Severity</th>
+
+</tr>
+
+{% for log in logs %}
+
+<tr class="log-row" data-severity="{{ log.severity }}">
+
+<td>{{ log.message }}</td>
+
+<td>
+
+{% if log.severity=="LOW" %}
+
+<span class="low">🟢 LOW</span>
+
+{% elif log.severity=="MEDIUM" %}
+
+<span class="medium">🟡 MEDIUM</span>
+
+{% else %}
+
+<span class="critical">🔴 CRITICAL</span>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+<!-- Incidents -->
+
+<div class="table-box">
+
+<h2>Incident Summary</h2>
+
+<table>
+
+<tr>
+
+<th>ID</th>
+
+<th>Event</th>
+
+<th>Severity</th>
+
+<th>Status</th>
+
+</tr>
+
+{% for incident in incidents %}
+
+<tr>
+
+<td>#{{ incident.id }}</td>
+
+<td>{{ incident.event }}</td>
+
+<td>
+
+{% if incident.severity=="MEDIUM" %}
+
+<span class="medium">{{ incident.severity }}</span>
+
+{% else %}
+
+<span class="critical">{{ incident.severity }}</span>
+
+{% endif %}
+
+</td>
+
+<td>{{ incident.status }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+<script>
+
+// SEARCH
+
+const searchInput=document.getElementById("searchInput");
+const severityFilter=document.getElementById("severityFilter");
+
+searchInput.addEventListener("keyup",filterLogs);
+severityFilter.addEventListener("change",filterLogs);
+
+function filterLogs(){
+
+const text=searchInput.value.toLowerCase();
+
+const severity=severityFilter.value;
+
+document.querySelectorAll(".log-row").forEach(row=>{
+
+const message=row.innerText.toLowerCase();
+
+const rowSeverity=row.dataset.severity;
+
+const okText=message.includes(text);
+
+const okSeverity=severity==="ALL"||rowSeverity===severity;
+
+row.style.display=(okText&&okSeverity)?"":"none";
+
+});
+
+}
+
+// PIE CHART
+
+new Chart(document.getElementById("severityChart"),{
+
+type:"pie",
+
+data:{
+
+labels:["Low","Medium","Critical"],
+
+datasets:[{
+
+data:[{{ low }},{{ medium }},{{ critical }}],
+
+backgroundColor:["#22c55e","#f59e0b","#ef4444"]
+
+}]
+
+}
+
+});
+
+// BAR CHART
+
+new Chart(document.getElementById("loginChart"),{
+
+type:"bar",
+
+data:{
+
+labels:["Failed Logins"],
+
+datasets:[{
+
+label:"Attempts",
+
+data:[{{ failed }}]
+
+}]
+
+}
+
+});
+
+// EXPORT CSV
+
+function exportTable(){
+
+let csv=[];
+
+document.querySelectorAll("#logTable tr").forEach(row=>{
+
+let cols=row.querySelectorAll("th,td");
+
+let arr=[];
+
+cols.forEach(col=>arr.push(col.innerText));
+
+csv.push(arr.join(","));
+
+});
+
+let blob=new Blob([csv.join("\n")],{type:"text/csv"});
+
+let link=document.createElement("a");
+
+link.href=URL.createObjectURL(blob);
+
+link.download="SecurityLogs.csv";
+
+link.click();
+
+}
+
+</script>
+
+{% endblock %}

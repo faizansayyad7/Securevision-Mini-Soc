@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SecureVision AI</title>
+
+<link rel="stylesheet"
+href="{{ url_for('static', filename='style.css') }}">
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>🛡 SecureVision</h2>
+
+<ul>
+
+<li class="active">Dashboard</li>
+
+<li>Logs</li>
+
+<li>Alerts</li>
+
+<li>Analytics</li>
+
+<li>Threat Intel</li>
+
+<li>Settings</li>
+
+</ul>
+
+</div>
+
+<div class="main">
+
+<div class="topbar">
+
+<h1>Security Operations Center</h1>
+
+<div class="top-right">
+
+<div class="notification">
+
+🔔 {{ critical }}
+
+</div>
+
+<div class="user">
+
+SOC Analyst
+
+</div>
+
+</div>
+
+</div>
+
+{% block content %}
+
+{% endblock %}
+
+</div>
+
+</body>
+
+</html>
