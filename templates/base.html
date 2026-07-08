@@ -4,7 +4,6 @@
 <head>
 
 <meta charset="UTF-8">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>SecureVision AI</title>
@@ -13,7 +12,9 @@
 href="{{ url_for('static', filename='style.css') }}">
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
@@ -24,19 +25,25 @@ href="{{ url_for('static', filename='style.css') }}">
 
 <ul>
 
-<li class="active">Dashboard</li>
+<li class="active">📊 Dashboard</li>
 
-<li>Logs</li>
+<li>📄 Logs</li>
 
-<li>Alerts</li>
+<li>🚨 Alerts</li>
 
-<li>Analytics</li>
+<li>📈 Analytics</li>
 
-<li>Threat Intel</li>
+<li>🌐 Threat Intel</li>
 
-<li>Settings</li>
+<li>⚙ Settings</li>
 
 </ul>
+
+<div class="sidebar-footer">
+
+<p>Version 1.0</p>
+
+</div>
 
 </div>
 
@@ -56,9 +63,15 @@ href="{{ url_for('static', filename='style.css') }}">
 
 <div class="user">
 
-SOC Analyst
+👤 {{ session.get("user","Guest") }}
 
 </div>
+
+<a href="{{ url_for('logout') }}" class="logout-btn">
+
+🚪 Logout
+
+</a>
 
 </div>
 
