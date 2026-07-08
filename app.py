@@ -1,21 +1,30 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from detector import analyze_logs
+from database import db
 import os
 
 app = Flask(__name__)
 
-# Secret key for session
 app.secret_key = "securevision_secret_key"
 
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# SQLite Database
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///securevision.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Create Database Tables
+with app.app_context():
+    db.create_all()
 
-# -----------------------------
-# LOGIN
-# -----------------------------
+
+# ---------------- LOGIN ---------------- #
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -27,21 +36,19 @@ def login():
         if username == "admin" and password == "admin123":
 
             session["user"] = username
+
             return redirect(url_for("dashboard"))
 
-        else:
-
-            return render_template(
-                "login.html",
-                error="Invalid Username or Password"
-            )
+        return render_template(
+            "login.html",
+            error="Invalid Username or Password"
+        )
 
     return render_template("login.html")
 
 
-# -----------------------------
-# LOGOUT
-# -----------------------------
+# ---------------- LOGOUT ---------------- #
+
 @app.route("/logout")
 def logout():
 
@@ -50,14 +57,13 @@ def logout():
     return redirect(url_for("login"))
 
 
-# -----------------------------
-# DASHBOARD
-# -----------------------------
+# ---------------- DASHBOARD ---------------- #
+
 @app.route("/", methods=["GET", "POST"])
 def dashboard():
 
-    # User not logged in
     if "user" not in session:
+
         return redirect(url_for("login"))
 
     if request.method == "POST":
@@ -94,29 +100,17 @@ def dashboard():
     health = max(100 - risk, 0)
 
     return render_template(
-
         "dashboard.html",
-
         logs=data["logs"],
-
         incidents=data["incidents"],
-
         failed=data["failed"],
-
         total=data["total"],
-
         alert=data["alert"],
-
         low=data["low"],
-
         medium=data["medium"],
-
         critical=data["critical"],
-
         risk=risk,
-
         health=health
-
     )
 
 
