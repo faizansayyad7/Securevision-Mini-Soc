@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 from detector import analyze_logs
-from database import db
+from database import db, ScanHistory, Incident
 import os
 
 app = Flask(__name__)
@@ -80,6 +80,28 @@ def dashboard():
             file.save(filepath)
 
             data = analyze_logs(filepath)
+            # Save Scan History
+            scan = ScanHistory(
+               filename=file.filename,
+                 total_logs=data["total"],
+                  failed_logins=data["failed"],
+                   risk_score=min(data["failed"] * 10, 100)
+                )
+
+            db.session.add(scan)
+
+                # Save Incidents
+            for item in data["incidents"]:
+
+             incident = Incident(
+              event=item["event"],
+              severity=item["severity"],
+              status=item["status"]
+             )
+
+            db.session.add(incident)
+
+            db.session.commit()
 
         else:
 
