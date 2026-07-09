@@ -89,28 +89,29 @@ def dashboard():
 
             db.session.add(scan)
             db.session.commit()
-            # Save Scan History
+           # Save Scan History
+
+            risk = min(data["failed"] * 10, 100)
 
             scan = ScanHistory(
-                filename=file.filename,
+             filename=file.filename,
                 total_logs=data["total"],
                 failed_logins=data["failed"],
                 risk_score=risk
-            )
+                )
 
             db.session.add(scan)
 
-            # Save Incidents
-
+                # Save Incidents
             for item in data["incidents"]:
 
-                incident = Incident(
+             incident = Incident(
                     event=item["event"],
                     severity=item["severity"],
-                    status=item["status"]
-                )
+                     status=item["status"]
+             )
 
-                db.session.add(incident)
+            db.session.add(incident)
 
             db.session.commit()
 
@@ -183,6 +184,20 @@ def delete_scan(id):
 
     return redirect(url_for("history"))
 
+
+@app.route("/resolve-incident/<int:id>")
+def resolve_incident(id):
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    incident = Incident.query.get_or_404(id)
+
+    incident.status = "Resolved"
+
+    db.session.commit()
+
+    return redirect(url_for("dashboard"))
 
 
 if __name__ == "__main__":

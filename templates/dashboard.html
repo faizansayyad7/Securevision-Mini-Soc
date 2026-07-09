@@ -202,13 +202,11 @@
 
 <tr>
 
-<th>ID</th>
-
-<th>Event</th>
-
-<th>Severity</th>
-
-<th>Status</th>
+    <th>ID</th>
+    <th>Event</th>
+    <th>Severity</th>
+    <th>Status</th>
+    <th>Action</th>
 
 </tr>
 
@@ -216,25 +214,57 @@
 
 <tr>
 
-<td>#{{ incident.id }}</td>
+    <td>#{{ incident.id }}</td>
 
-<td>{{ incident.event }}</td>
+    <td>{{ incident.event }}</td>
 
-<td>
+    <td>
 
-{% if incident.severity=="MEDIUM" %}
+        {% if incident.severity=="LOW" %}
 
-<span class="medium">{{ incident.severity }}</span>
+            <span class="low">🟢 LOW</span>
 
-{% else %}
+        {% elif incident.severity=="MEDIUM" %}
 
-<span class="critical">{{ incident.severity }}</span>
+            <span class="medium">🟡 MEDIUM</span>
 
-{% endif %}
+        {% else %}
 
-</td>
+            <span class="critical">🔴 CRITICAL</span>
 
-<td>{{ incident.status }}</td>
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        {% if incident.status=="Resolved" %}
+
+            <span class="safe">✅ Resolved</span>
+
+        {% else %}
+
+            <span class="critical">🔴 Open</span>
+
+        {% endif %}
+
+    </td>
+
+    <td>
+
+        {% if incident.status!="Resolved" %}
+
+            <a href="{{ url_for('resolve_incident', id=incident.id) }}" class="resolve-btn">
+                Resolve
+            </a>
+
+        {% else %}
+
+            ✔
+
+        {% endif %}
+
+    </td>
 
 </tr>
 
@@ -243,110 +273,122 @@
 </table>
 
 </div>
-
 <script>
 
 // SEARCH
 
-const searchInput=document.getElementById("searchInput");
-const severityFilter=document.getElementById("severityFilter");
+const searchInput = document.getElementById("searchInput");
+const severityFilter = document.getElementById("severityFilter");
 
-searchInput.addEventListener("keyup",filterLogs);
-severityFilter.addEventListener("change",filterLogs);
+searchInput.addEventListener("keyup", filterLogs);
+severityFilter.addEventListener("change", filterLogs);
 
 function filterLogs(){
 
-const text=searchInput.value.toLowerCase();
+    const text = searchInput.value.toLowerCase();
+    const severity = severityFilter.value;
 
-const severity=severityFilter.value;
+    document.querySelectorAll(".log-row").forEach(row=>{
 
-document.querySelectorAll(".log-row").forEach(row=>{
+        const message = row.innerText.toLowerCase();
+        const rowSeverity = row.dataset.severity;
 
-const message=row.innerText.toLowerCase();
+        const okText = message.includes(text);
+        const okSeverity = severity==="ALL" || rowSeverity===severity;
 
-const rowSeverity=row.dataset.severity;
+        row.style.display = (okText && okSeverity) ? "" : "none";
 
-const okText=message.includes(text);
-
-const okSeverity=severity==="ALL"||rowSeverity===severity;
-
-row.style.display=(okText&&okSeverity)?"":"none";
-
-});
+    });
 
 }
+
 
 // PIE CHART
 
 new Chart(document.getElementById("severityChart"),{
 
-type:"pie",
+    type:"pie",
 
-data:{
+    data:{
 
-labels:["Low","Medium","Critical"],
+        labels:["Low","Medium","Critical"],
 
-datasets:[{
+        datasets:[{
 
-data:[{{ low }},{{ medium }},{{ critical }}],
+            data:[
+            {{ low }},
+            {{ medium }},
+            {{ critical }}
+            ],
 
-backgroundColor:["#22c55e","#f59e0b","#ef4444"]
+            backgroundColor:[
+            "#22c55e",
+            "#f59e0b",
+            "#ef4444"
+            ]
 
-}]
+        }]
 
-}
+    }
 
 });
+
 
 // BAR CHART
 
 new Chart(document.getElementById("loginChart"),{
 
-type:"bar",
+    type:"bar",
 
-data:{
+    data:{
 
-labels:["Failed Logins"],
+        labels:["Failed Logins"],
 
-datasets:[{
+        datasets:[{
 
-label:"Attempts",
+            label:"Attempts",
 
-data:[{{ failed }}]
+            data:[{{ failed }}]
 
-}]
+        }]
 
-}
+    },
+
+    options:{
+        responsive:true,
+        maintainAspectRatio:false
+    }
 
 });
+
 
 // EXPORT CSV
 
 function exportTable(){
 
-let csv=[];
+    let csv=[];
 
-document.querySelectorAll("#logTable tr").forEach(row=>{
+    document.querySelectorAll("#logTable tr").forEach(row=>{
 
-let cols=row.querySelectorAll("th,td");
+        let cols=row.querySelectorAll("th,td");
 
-let arr=[];
+        let arr=[];
 
-cols.forEach(col=>arr.push(col.innerText));
+        cols.forEach(col=>arr.push(col.innerText));
 
-csv.push(arr.join(","));
+        csv.push(arr.join(","));
 
-});
+    });
 
-let blob=new Blob([csv.join("\n")],{type:"text/csv"});
+    let blob=new Blob([csv.join("\n")],{type:"text/csv"});
 
-let link=document.createElement("a");
+    let link=document.createElement("a");
 
-link.href=URL.createObjectURL(blob);
+    link.href=URL.createObjectURL(blob);
 
-link.download="SecurityLogs.csv";
+    link.download="SecurityLogs.csv";
 
-link.click();
+    link.click();
 
 }
 
