@@ -10,7 +10,6 @@ app.secret_key = "securevision_secret_key"
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# SQLite Database
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///securevision.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -18,7 +17,6 @@ db.init_app(app)
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Create Database Tables
 with app.app_context():
     db.create_all()
 
@@ -63,7 +61,6 @@ def logout():
 def dashboard():
 
     if "user" not in session:
-
         return redirect(url_for("login"))
 
     if request.method == "POST":
@@ -74,32 +71,37 @@ def dashboard():
 
             filepath = os.path.join(
                 app.config["UPLOAD_FOLDER"],
-                "logs.txt"
+                file.filename
             )
 
             file.save(filepath)
 
             data = analyze_logs(filepath)
+
+            risk = min(data["failed"] * 10, 100)
+
             # Save Scan History
+
             scan = ScanHistory(
-               filename=file.filename,
-                 total_logs=data["total"],
-                  failed_logins=data["failed"],
-                   risk_score=min(data["failed"] * 10, 100)
-                )
+                filename=file.filename,
+                total_logs=data["total"],
+                failed_logins=data["failed"],
+                risk_score=risk
+            )
 
             db.session.add(scan)
 
-                # Save Incidents
+            # Save Incidents
+
             for item in data["incidents"]:
 
-             incident = Incident(
-              event=item["event"],
-              severity=item["severity"],
-              status=item["status"]
-             )
+                incident = Incident(
+                    event=item["event"],
+                    severity=item["severity"],
+                    status=item["status"]
+                )
 
-            db.session.add(incident)
+                db.session.add(incident)
 
             db.session.commit()
 
@@ -133,6 +135,25 @@ def dashboard():
         critical=data["critical"],
         risk=risk,
         health=health
+    )
+
+
+# ---------------- HISTORY ---------------- #
+
+@app.route("/history")
+def history():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    scans = ScanHistory.query.order_by(
+        ScanHistory.id.desc()
+    ).all()
+
+    return render_template(
+        "history.html",
+        scans=scans,
+        critical=0
     )
 
 

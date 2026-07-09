@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="table-box">
+
+<h2>🕒 Scan History</h2>
+
+<table>
+
+<tr>
+
+<th>ID</th>
+
+<th>Filename</th>
+
+<th>Total Logs</th>
+
+<th>Failed Logins</th>
+
+<th>Risk</th>
+
+<th>Date</th>
+
+</tr>
+
+{% for scan in scans %}
+
+<tr>
+
+<td>{{ scan.id }}</td>
+
+<td>{{ scan.filename }}</td>
+
+<td>{{ scan.total_logs }}</td>
+
+<td>{{ scan.failed_logins }}</td>
+
+<td>{{ scan.risk_score }}%</td>
+
+<td>{{ scan.created_at.strftime("%d-%m-%Y %H:%M") }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endblock %}
