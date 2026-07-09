@@ -4,25 +4,35 @@
 
 <div class="table-box">
 
-<h2>🕒 Scan History</h2>
+<h2>📜 Scan History</h2>
+
+{% if scans %}
 
 <table>
+
+<thead>
 
 <tr>
 
 <th>ID</th>
 
-<th>Filename</th>
+<th>File Name</th>
 
 <th>Total Logs</th>
 
 <th>Failed Logins</th>
 
-<th>Risk</th>
+<th>Risk Score</th>
 
 <th>Date</th>
 
+<th>Action</th>
+
 </tr>
+
+</thead>
+
+<tbody>
 
 {% for scan in scans %}
 
@@ -36,15 +46,54 @@
 
 <td>{{ scan.failed_logins }}</td>
 
-<td>{{ scan.risk_score }}%</td>
+<td>
 
-<td>{{ scan.created_at.strftime("%d-%m-%Y %H:%M") }}</td>
+{% if scan.risk_score >= 70 %}
+
+<span class="critical">{{ scan.risk_score }}%</span>
+
+{% elif scan.risk_score >= 40 %}
+
+<span class="medium">{{ scan.risk_score }}%</span>
+
+{% else %}
+
+<span class="low">{{ scan.risk_score }}%</span>
+
+{% endif %}
+
+</td>
+
+<td>
+
+{{ scan.created_at.strftime("%d-%m-%Y %H:%M") }}
+
+</td>
+
+<td>
+
+<a href="/delete-scan/{{ scan.id }}"
+class="delete-btn">
+
+Delete
+
+</a>
+
+</td>
 
 </tr>
 
 {% endfor %}
 
+</tbody>
+
 </table>
+
+{% else %}
+
+<h3>No Scan History Available.</h3>
+
+{% endif %}
 
 </div>
 

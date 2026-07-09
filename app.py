@@ -80,6 +80,15 @@ def dashboard():
 
             risk = min(data["failed"] * 10, 100)
 
+            scan = ScanHistory(
+            filename=file.filename,
+            total_logs=data["total"],
+            failed_logins=data["failed"],
+             risk_score=risk
+            )
+
+            db.session.add(scan)
+            db.session.commit()
             # Save Scan History
 
             scan = ScanHistory(
@@ -138,6 +147,7 @@ def dashboard():
     )
 
 
+
 # ---------------- HISTORY ---------------- #
 
 @app.route("/history")
@@ -147,7 +157,7 @@ def history():
         return redirect(url_for("login"))
 
     scans = ScanHistory.query.order_by(
-        ScanHistory.id.desc()
+        ScanHistory.created_at.desc()
     ).all()
 
     return render_template(
@@ -155,6 +165,24 @@ def history():
         scans=scans,
         critical=0
     )
+
+
+# ---------------- DELETE SCAN ---------------- #
+
+@app.route("/delete-scan/<int:id>")
+def delete_scan(id):
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    scan = ScanHistory.query.get_or_404(id)
+
+    db.session.delete(scan)
+
+    db.session.commit()
+
+    return redirect(url_for("history"))
+
 
 
 if __name__ == "__main__":

@@ -3,87 +3,100 @@
 
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SecureVision AI</title>
+    <title>SecureVision AI</title>
 
-<link rel="stylesheet"
-href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </head>
 
 <body>
 
-<div class="sidebar">
+    <!-- Sidebar -->
 
-<h2>🛡 SecureVision</h2>
+    <div class="sidebar">
 
-<ul>
+        <h2>🛡 SecureVision</h2>
 
-<li><a href="/" class="menu-link">📊 Dashboard</a></li>
+        <ul>
 
-<li><a href="/history" class="menu-link">🕒 History</a></li>
+            <li>
+                <a href="/" class="menu-link">
+                    📊 Dashboard
+                </a>
+            </li>
 
-<li><a href="#" class="menu-link">📄 Logs</a></li>
+            <li>
+                <a href="/history" class="menu-link">
+                    📜 Scan History
+                </a>
+            </li>
 
-<li><a href="#" class="menu-link">🚨 Alerts</a></li>
+            <li>
+                <a href="#" class="menu-link">
+                    🚨 Incidents
+                </a>
+            </li>
 
-<li><a href="#" class="menu-link">📈 Analytics</a></li>
+            <li>
+                <a href="#" class="menu-link">
+                    📄 Reports
+                </a>
+            </li>
 
-<li><a href="#" class="menu-link">🌐 Threat Intel</a></li>
+            <li>
+                <a href="#" class="menu-link">
+                    ⚙️ Settings
+                </a>
+            </li>
 
-<li><a href="#" class="menu-link">⚙ Settings</a></li>
+        </ul>
 
-</ul>
+        <div class="sidebar-footer">
 
-<div class="sidebar-footer">
+            <p>Version 1.0</p>
 
-<p>Version 1.0</p>
+        </div>
 
-</div>
+    </div>
 
-</div>
+    <!-- Main -->
 
-<div class="main">
+    <div class="main">
 
-<div class="topbar">
+        <div class="topbar">
 
-<h1>Security Operations Center</h1>
+            <h1>Security Operations Center</h1>
 
-<div class="top-right">
+            <div class="top-right">
 
-<div class="notification">
+                <div class="notification">
+                    🔔 {{ critical }}
+                </div>
 
-🔔 {{ critical }}
+                <div class="user">
+                    👤 {{ session.get("user","Guest") }}
+                </div>
 
-</div>
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    🚪 Logout
+                </a>
 
-<div class="user">
+            </div>
 
-👤 {{ session.get("user","Guest") }}
+        </div>
 
-</div>
+        {% block content %}
+        {% endblock %}
 
-<a href="{{ url_for('logout') }}" class="logout-btn">
-
-🚪 Logout
-
-</a>
-
-</div>
-
-</div>
-
-{% block content %}
-
-{% endblock %}
-
-</div>
+    </div>
 
 </body>
 
